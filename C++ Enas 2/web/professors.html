@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professors - NCTU SIS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="bi bi-mortarboard-fill"></i> NCTU SIS</h3>
+        </div>
+        <ul class="nav flex-column sidebar-menu" id="sidebar-menu"></ul>
+        <div class="px-3 py-2">
+            <button class="btn btn-outline-danger btn-sm w-100" onclick="auth.logout()">
+                <i class="bi bi-box-arrow-right me-2"></i>Logout
+            </button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="topbar">
+            <h4 class="mb-0">Professors</h4>
+            <div class="user-info">
+                <div class="user-avatar" id="user-avatar">U</div>
+                <div>
+                    <div id="user-name">User</div>
+                    <small class="text-muted" id="user-role">Role</small>
+                </div>
+            </div>
+        </div>
+
+        <div id="professors-content"></div>
+    </div>
+
+    <div class="modal fade" id="professorModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="professor-modal-title">Add Professor</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="professor-form">
+                    <div class="modal-body">
+                        <div id="professor-form-message"></div>
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Professor ID</label>
+                                <input type="text" class="form-control" id="professor-id" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Title</label>
+                                <input type="text" class="form-control" id="professor-title" placeholder="Dr.">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">First Name</label>
+                                <input type="text" class="form-control" id="professor-first-name" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Last Name</label>
+                                <input type="text" class="form-control" id="professor-last-name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email</label>
+                                <input type="email" class="form-control" id="professor-email">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Phone</label>
+                                <input type="text" class="form-control" id="professor-phone">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Department</label>
+                                <select class="form-select" id="professor-department" required></select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Hire Date</label>
+                                <input type="date" class="form-control" id="professor-hire-date">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Specialization</label>
+                                <input type="text" class="form-control" id="professor-specialization">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="professor-save-btn">Save Professor</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui.js"></script>
+    <script>
+        let professors = [];
+        let professorModal;
+        let activeProfessorId = null;
+
+        const professorForm = document.getElementById('professor-form');
+        const professorFormMessage = document.getElementById('professor-form-message');
+        const professorsContent = document.getElementById('professors-content');
+
+        function getDepartmentOptions() {
+            const list = UIHelper.getLookupList('departments');
+            return list.length ? list : [];
+        }
+
+        function buildOptions(list, selectedId, placeholder) {
+            const options = [];
+            if (placeholder) {
+                options.push(`<option value="">${placeholder}</option>`);
+            }
+            list.forEach(item => {
+                const id = item.id || item.departmentId;
+                const label = item.nameEn || item.name || item.code || id;
+                const selected = selectedId && id === selectedId ? 'selected' : '';
+                options.push(`<option value="${id}" ${selected}>${label}</option>`);
+            });
+            return options.join('');
+        }
+
+        function renderProfessors() {
+            const searchInput = document.getElementById('professor-search');
+            const term = searchInput ? searchInput.value.trim().toLowerCase() : '';
+            const filtered = term
+                ? professors.filter(p => (
+                    p.id.toLowerCase().includes(term) ||
+                    (p.fullName || '').toLowerCase().includes(term) ||
+                    (p.email || '').toLowerCase().includes(term)
+                ))
+                : professors;
+
+            const tbody = document.getElementById('professors-table-body');
+            const countBadge = document.getElementById('professors-count');
+            if (countBadge) countBadge.textContent = `${filtered.length} professors`;
+
+            if (!tbody) return;
+            if (!filtered.length) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">No professors found.</td>
+                    </tr>
+                `;
+                return;
+            }
+            tbody.innerHTML = filtered.map(p => `
+                <tr>
+                    <td>${p.id}</td>
+                    <td>
+                        <div class="fw-semibold">${p.fullName || `${p.firstName} ${p.lastName}`}</div>
+                        <div class="text-muted small">${p.title || '-'}</div>
+                    </td>
+                    <td>${UIHelper.formatDepartment(p.departmentId)}</td>
+                    <td>${p.email || '-'}</td>
+                    <td>${p.phone || '-'}</td>
+                    <td>${p.specialization || '-'}</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-secondary me-1" onclick="openProfessorModal('edit', '${p.id}')">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteProfessor('${p.id}')">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function openProfessorModal(mode, professorId = '') {
+            await API.loadLookups();
+            const title = document.getElementById('professor-modal-title');
+            const saveBtn = document.getElementById('professor-save-btn');
+            const deptSelect = document.getElementById('professor-department');
+
+            const departments = getDepartmentOptions();
+            deptSelect.innerHTML = buildOptions(departments, '', 'Select department');
+
+            if (!professorModal) {
+                professorModal = new bootstrap.Modal(document.getElementById('professorModal'));
+            }
+
+            const isEdit = mode === 'edit';
+            activeProfessorId = isEdit ? professorId : null;
+            const professor = isEdit ? professors.find(p => p.id === professorId) : {};
+
+            document.getElementById('professor-id').value = professor?.id || '';
+            document.getElementById('professor-id').readOnly = isEdit;
+            document.getElementById('professor-title').value = professor?.title || '';
+            document.getElementById('professor-first-name').value = professor?.firstName || '';
+            document.getElementById('professor-last-name').value = professor?.lastName || '';
+            document.getElementById('professor-email').value = professor?.email || '';
+            document.getElementById('professor-phone').value = professor?.phone || '';
+            document.getElementById('professor-hire-date').value = professor?.hireDate || '';
+            document.getElementById('professor-specialization').value = professor?.specialization || '';
+            deptSelect.value = professor?.departmentId || '';
+
+            title.textContent = isEdit ? 'Edit Professor' : 'Add Professor';
+            saveBtn.textContent = isEdit ? 'Save Changes' : 'Save Professor';
+            professorFormMessage.innerHTML = '';
+            professorModal.show();
+        }
+
+        async function submitProfessorForm(event) {
+            event.preventDefault();
+            const payload = {
+                id: document.getElementById('professor-id').value.trim(),
+                title: document.getElementById('professor-title').value.trim(),
+                firstName: document.getElementById('professor-first-name').value.trim(),
+                lastName: document.getElementById('professor-last-name').value.trim(),
+                email: document.getElementById('professor-email').value.trim(),
+                phone: document.getElementById('professor-phone').value.trim(),
+                departmentId: document.getElementById('professor-department').value,
+                hireDate: document.getElementById('professor-hire-date').value,
+                specialization: document.getElementById('professor-specialization').value.trim()
+            };
+
+            try {
+                if (activeProfessorId) {
+                    await API.updateProfessor(payload);
+                    UIHelper.showSuccess('Professor updated successfully.', professorFormMessage);
+                } else {
+                    await API.createProfessor(payload);
+                    UIHelper.showSuccess('Professor created successfully.', professorFormMessage);
+                }
+                await loadProfessors();
+                setTimeout(() => professorModal.hide(), 600);
+            } catch (error) {
+                UIHelper.showError(error.message, professorFormMessage);
+            }
+        }
+
+        async function deleteProfessor(professorId) {
+            if (!confirm('Delete this professor?')) return;
+            try {
+                await API.deleteProfessor(professorId);
+                await loadProfessors();
+            } catch (error) {
+                UIHelper.showError(error.message, professorsContent);
+            }
+        }
+
+        async function loadProfessors() {
+            try {
+                professorsContent.innerHTML = `
+                    <div class="page-actions">
+                        <div class="search-input">
+                            <i class="bi bi-search"></i>
+                            <input type="text" id="professor-search" class="form-control" placeholder="Search professors">
+                        </div>
+                        <button class="btn btn-primary" onclick="openProfessorModal('create')">
+                            <i class="bi bi-plus-lg me-2"></i>Add Professor
+                        </button>
+                    </div>
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <span>All Professors</span>
+                            <span class="badge bg-primary" id="professors-count">0 professors</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>Professor ID</th>
+                                            <th>Professor</th>
+                                            <th>Department</th>
+                                            <th>Email</th>
+                                            <th>Phone</th>
+                                            <th>Specialization</th>
+                                            <th class="text-end">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="professors-table-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                await API.loadLookups();
+                professors = await API.getProfessors();
+                renderProfessors();
+                document.getElementById('professor-search').addEventListener('input', renderProfessors);
+            } catch (error) {
+                UIHelper.showError(error.message, professorsContent);
+            }
+        }
+
+        (async () => {
+            const ready = await UIHelper.initializePage();
+            if (!ready) return;
+            if (!auth.requireRoles(['ROLE_SUPERADMIN'])) {
+                return;
+            }
+
+            professorForm.addEventListener('submit', submitProfessorForm);
+            loadProfessors();
+            
+            const user = auth.getUser();
+            if (user && user.fullName) {
+                document.getElementById('user-avatar').textContent = user.fullName.charAt(0).toUpperCase();
+            }
+        })();
+    </script>
+</body>
+</html>

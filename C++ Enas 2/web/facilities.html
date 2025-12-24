@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facilities - NCTU SIS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="bi bi-mortarboard-fill"></i> NCTU SIS</h3>
+        </div>
+        <ul class="nav flex-column sidebar-menu" id="sidebar-menu"></ul>
+        <div class="px-3 py-2">
+            <button class="btn btn-outline-danger btn-sm w-100" onclick="auth.logout()">
+                <i class="bi bi-box-arrow-right me-2"></i>Logout
+            </button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="topbar">
+            <h4 class="mb-0">Facilities</h4>
+            <div class="user-info">
+                <div class="user-avatar" id="user-avatar">U</div>
+                <div>
+                    <div id="user-name">User</div>
+                    <small class="text-muted" id="user-role">Role</small>
+                </div>
+            </div>
+        </div>
+
+        <div id="facilities-content"></div>
+    </div>
+
+    <div class="modal fade" id="lectureHallModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="lecture-hall-title">Add Lecture Hall</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="lecture-hall-form">
+                    <div class="modal-body">
+                        <div id="lecture-hall-message"></div>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Hall ID</label>
+                                <input type="text" class="form-control" id="hall-id" required>
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label">Name</label>
+                                <input type="text" class="form-control" id="hall-name" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Building</label>
+                                <input type="text" class="form-control" id="hall-building">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Floor</label>
+                                <input type="number" class="form-control" id="hall-floor" min="0">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Max Capacity</label>
+                                <input type="number" class="form-control" id="hall-capacity" min="1" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Seating Description</label>
+                                <input type="text" class="form-control" id="hall-seating">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">AC Units</label>
+                                <input type="number" class="form-control" id="hall-ac" min="0">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Fan Units</label>
+                                <input type="number" class="form-control" id="hall-fan" min="0">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Lighting Units</label>
+                                <input type="number" class="form-control" id="hall-lighting" min="0">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" id="hall-description" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="hall-save-btn">Save Hall</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="labModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="lab-title">Add Laboratory</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="lab-form">
+                    <div class="modal-body">
+                        <div id="lab-message"></div>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Lab ID</label>
+                                <input type="text" class="form-control" id="lab-id" required>
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label">Name</label>
+                                <input type="text" class="form-control" id="lab-name" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Building</label>
+                                <input type="text" class="form-control" id="lab-building">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Floor</label>
+                                <input type="number" class="form-control" id="lab-floor" min="0">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Max Capacity</label>
+                                <input type="number" class="form-control" id="lab-capacity" min="1" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Lab Type</label>
+                                <input type="text" class="form-control" id="lab-type">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Computers</label>
+                                <input type="number" class="form-control" id="lab-computers" min="0">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Seats</label>
+                                <input type="number" class="form-control" id="lab-seats" min="0">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">AC Units</label>
+                                <input type="number" class="form-control" id="lab-ac" min="0">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Fan Units</label>
+                                <input type="number" class="form-control" id="lab-fan" min="0">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Lighting Units</label>
+                                <input type="number" class="form-control" id="lab-lighting" min="0">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Description</label>
+                                <textarea class="form-control" id="lab-description" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="lab-save-btn">Save Lab</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/ui.js"></script>
+    <script>
+        let lectureHalls = [];
+        let laboratories = [];
+        let hallModal;
+        let labModal;
+        let activeHallId = null;
+        let activeLabId = null;
+
+        const hallForm = document.getElementById('lecture-hall-form');
+        const hallMessage = document.getElementById('lecture-hall-message');
+        const labForm = document.getElementById('lab-form');
+        const labMessage = document.getElementById('lab-message');
+        const facilitiesContent = document.getElementById('facilities-content');
+
+        function formatOptional(value) {
+            if (value === null || value === undefined || value === '') return '-';
+            return value;
+        }
+
+        async function openHallModal(mode, hallId = '') {
+            if (!hallModal) {
+                hallModal = new bootstrap.Modal(document.getElementById('lectureHallModal'));
+            }
+            const isEdit = mode === 'edit';
+            activeHallId = isEdit ? hallId : null;
+            const hall = isEdit ? lectureHalls.find(h => h.id === hallId) : {};
+
+            document.getElementById('lecture-hall-title').textContent = isEdit ? 'Edit Lecture Hall' : 'Add Lecture Hall';
+            document.getElementById('hall-save-btn').textContent = isEdit ? 'Save Changes' : 'Save Hall';
+            document.getElementById('hall-id').value = hall?.id || '';
+            document.getElementById('hall-id').readOnly = isEdit;
+            document.getElementById('hall-name').value = hall?.name || '';
+            document.getElementById('hall-building').value = hall?.building || '';
+            document.getElementById('hall-floor').value = hall?.floor ?? '';
+            document.getElementById('hall-capacity').value = hall?.maxCapacity || '';
+            document.getElementById('hall-seating').value = hall?.seatingDesc || '';
+            document.getElementById('hall-ac').value = hall?.acUnits ?? '';
+            document.getElementById('hall-fan').value = hall?.fanUnits ?? '';
+            document.getElementById('hall-lighting').value = hall?.lightingUnits ?? '';
+            document.getElementById('hall-description').value = hall?.description || '';
+            hallMessage.innerHTML = '';
+            hallModal.show();
+        }
+
+        async function openLabModal(mode, labId = '') {
+            if (!labModal) {
+                labModal = new bootstrap.Modal(document.getElementById('labModal'));
+            }
+            const isEdit = mode === 'edit';
+            activeLabId = isEdit ? labId : null;
+            const lab = isEdit ? laboratories.find(l => l.id === labId) : {};
+
+            document.getElementById('lab-title').textContent = isEdit ? 'Edit Laboratory' : 'Add Laboratory';
+            document.getElementById('lab-save-btn').textContent = isEdit ? 'Save Changes' : 'Save Lab';
+            document.getElementById('lab-id').value = lab?.id || '';
+            document.getElementById('lab-id').readOnly = isEdit;
+            document.getElementById('lab-name').value = lab?.name || '';
+            document.getElementById('lab-building').value = lab?.building || '';
+            document.getElementById('lab-floor').value = lab?.floor ?? '';
+            document.getElementById('lab-capacity').value = lab?.maxCapacity || '';
+            document.getElementById('lab-type').value = lab?.labType || '';
+            document.getElementById('lab-computers').value = lab?.computersCount ?? '';
+            document.getElementById('lab-seats').value = lab?.seatsCount ?? '';
+            document.getElementById('lab-ac').value = lab?.acUnits ?? '';
+            document.getElementById('lab-fan').value = lab?.fanUnits ?? '';
+            document.getElementById('lab-lighting').value = lab?.lightingUnits ?? '';
+            document.getElementById('lab-description').value = lab?.description || '';
+            labMessage.innerHTML = '';
+            labModal.show();
+        }
+
+        async function submitHallForm(event) {
+            event.preventDefault();
+            const payload = {
+                id: document.getElementById('hall-id').value.trim(),
+                name: document.getElementById('hall-name').value.trim(),
+                building: document.getElementById('hall-building').value.trim(),
+                floor: parseInt(document.getElementById('hall-floor').value, 10) || 0,
+                maxCapacity: parseInt(document.getElementById('hall-capacity').value, 10) || 0,
+                seatingDesc: document.getElementById('hall-seating').value.trim(),
+                acUnits: parseInt(document.getElementById('hall-ac').value, 10) || 0,
+                fanUnits: parseInt(document.getElementById('hall-fan').value, 10) || 0,
+                lightingUnits: parseInt(document.getElementById('hall-lighting').value, 10) || 0,
+                description: document.getElementById('hall-description').value.trim()
+            };
+            try {
+                if (activeHallId) {
+                    await API.updateLectureHall(payload);
+                    UIHelper.showSuccess('Lecture hall updated.', hallMessage);
+                } else {
+                    await API.createLectureHall(payload);
+                    UIHelper.showSuccess('Lecture hall created.', hallMessage);
+                }
+                await loadFacilities();
+                setTimeout(() => hallModal.hide(), 600);
+            } catch (error) {
+                UIHelper.showError(error.message, hallMessage);
+            }
+        }
+
+        async function submitLabForm(event) {
+            event.preventDefault();
+            const payload = {
+                id: document.getElementById('lab-id').value.trim(),
+                name: document.getElementById('lab-name').value.trim(),
+                building: document.getElementById('lab-building').value.trim(),
+                floor: parseInt(document.getElementById('lab-floor').value, 10) || 0,
+                maxCapacity: parseInt(document.getElementById('lab-capacity').value, 10) || 0,
+                labType: document.getElementById('lab-type').value.trim(),
+                computersCount: parseInt(document.getElementById('lab-computers').value, 10) || 0,
+                seatsCount: parseInt(document.getElementById('lab-seats').value, 10) || 0,
+                acUnits: parseInt(document.getElementById('lab-ac').value, 10) || 0,
+                fanUnits: parseInt(document.getElementById('lab-fan').value, 10) || 0,
+                lightingUnits: parseInt(document.getElementById('lab-lighting').value, 10) || 0,
+                description: document.getElementById('lab-description').value.trim()
+            };
+            try {
+                if (activeLabId) {
+                    await API.updateLaboratory(payload);
+                    UIHelper.showSuccess('Laboratory updated.', labMessage);
+                } else {
+                    await API.createLaboratory(payload);
+                    UIHelper.showSuccess('Laboratory created.', labMessage);
+                }
+                await loadFacilities();
+                setTimeout(() => labModal.hide(), 600);
+            } catch (error) {
+                UIHelper.showError(error.message, labMessage);
+            }
+        }
+
+        async function deleteHall(hallId) {
+            if (!confirm('Delete this lecture hall?')) return;
+            try {
+                await API.deleteLectureHall(hallId);
+                await loadFacilities();
+            } catch (error) {
+                UIHelper.showError(error.message, facilitiesContent);
+            }
+        }
+
+        async function deleteLab(labId) {
+            if (!confirm('Delete this laboratory?')) return;
+            try {
+                await API.deleteLaboratory(labId);
+                await loadFacilities();
+            } catch (error) {
+                UIHelper.showError(error.message, facilitiesContent);
+            }
+        }
+
+        async function loadFacilities() {
+            try {
+                const data = await API.getFacilities();
+                lectureHalls = data.lectureHalls || [];
+                laboratories = data.laboratories || [];
+                
+                facilitiesContent.innerHTML = `
+                    <div class="page-actions">
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-primary" onclick="openHallModal('create')">
+                                <i class="bi bi-plus-lg me-2"></i>Add Lecture Hall
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="openLabModal('create')">
+                                <i class="bi bi-plus-lg me-2"></i>Add Laboratory
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>Lecture Halls</span>
+                                <span class="badge bg-primary">${lectureHalls.length} halls</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Building</th>
+                                            <th>Floor</th>
+                                            <th>Capacity</th>
+                                            <th>Seating</th>
+                                            <th class="text-end">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${lectureHalls.length ? lectureHalls.map(h => `
+                                            <tr>
+                                                <td>${h.id}</td>
+                                                <td>${h.name}</td>
+                                                <td>${formatOptional(h.building)}</td>
+                                                <td>${formatOptional(h.floor)}</td>
+                                                <td>${formatOptional(h.maxCapacity)}</td>
+                                                <td>${formatOptional(h.seatingDesc)}</td>
+                                                <td class="text-end">
+                                                    <button class="btn btn-sm btn-outline-secondary me-1" onclick="openHallModal('edit', '${h.id}')">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteHall('${h.id}')">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        `).join('') : `
+                                            <tr>
+                                                <td colspan="7" class="text-center text-muted py-4">No lecture halls found.</td>
+                                            </tr>
+                                        `}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>Laboratories</span>
+                                <span class="badge bg-primary">${laboratories.length} labs</span>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table align-middle">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Building</th>
+                                            <th>Floor</th>
+                                            <th>Type</th>
+                                            <th>Capacity</th>
+                                            <th>Computers</th>
+                                            <th class="text-end">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${laboratories.length ? laboratories.map(l => `
+                                            <tr>
+                                                <td>${l.id}</td>
+                                                <td>${l.name}</td>
+                                                <td>${formatOptional(l.building)}</td>
+                                                <td>${formatOptional(l.floor)}</td>
+                                                <td>${formatOptional(l.labType)}</td>
+                                                <td>${formatOptional(l.maxCapacity)}</td>
+                                                <td>${formatOptional(l.computersCount)}</td>
+                                                <td class="text-end">
+                                                    <button class="btn btn-sm btn-outline-secondary me-1" onclick="openLabModal('edit', '${l.id}')">
+                                                        <i class="bi bi-pencil"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteLab('${l.id}')">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        `).join('') : `
+                                            <tr>
+                                                <td colspan="8" class="text-center text-muted py-4">No laboratories found.</td>
+                                            </tr>
+                                        `}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                UIHelper.showError(error.message, facilitiesContent);
+            }
+        }
+
+        (async () => {
+            const ready = await UIHelper.initializePage();
+            if (!ready) return;
+            if (!auth.requireRoles(['ROLE_SUPERADMIN'])) {
+                return;
+            }
+
+            hallForm.addEventListener('submit', submitHallForm);
+            labForm.addEventListener('submit', submitLabForm);
+            loadFacilities();
+
+            const user = auth.getUser();
+            if (user && user.fullName) {
+                document.getElementById('user-avatar').textContent = user.fullName.charAt(0).toUpperCase();
+            }
+        })();
+    </script>
+</body>
+</html>
